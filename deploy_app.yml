@@ -1,0 +1,22 @@
+- name: Deploy ToDoList App without sudo
+  hosts: all
+  gather_facts: false
+
+  tasks:
+    - name: Stop old container
+      shell: docker stop todolist || true
+      ignore_errors: yes
+
+    - name: Remove old container
+      shell: docker rm todolist || true
+      ignore_errors: yes
+
+    - name: Copy JAR to local path
+      copy:
+        src: target/ToDoList-1.0.jar
+        dest: /home/nithila/ToDoList.jar
+        mode: '0755'
+
+    - name: Run Docker container
+      shell: docker run -d --name todolist -p 8081:8080 -v /home/nithila:/app -w /app openjdk:17 java -jar ToDoList.jar
+
