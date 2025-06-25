@@ -1,33 +1,41 @@
 pipeline {
     agent any
 
+    environment {
+        IMAGE_NAME = 'todolist'
+        CONTAINER_PORT = '8080'
+    }
+
     stages {
-        stage('Build') {
+        stage('Clone Repository') {
             steps {
-                echo "📦 Compiling Java project..."
+                git 'https://github.com/NithilaS2005/ToDoList'
+            }
+        }
+
+        stage('Build with Maven') {
+            steps {
                 sh 'mvn clean package'
             }
         }
 
-        stage('Test') {
+        stage('Build Docker Image') {
             steps {
-                echo "🧪 Running JUnit tests..."
-                sh 'mvn test'
+                sh 'docker build -t $IMAGE_NAME .'
             }
         }
 
-        stage('Docker Build') {
+        stage('Run Docker Container') {
             steps {
-                echo "🐳 Building Docker image..."
-                sh 'docker build -t todolist-app .'
+                sh 'docker run -d -p 8080:$CONTAINER_PORT $IMAGE_NAME'
             }
         }
 
         stage('Deploy with Ansible') {
             steps {
-                echo "🚀 Deploying using Ansible..."
-                sh 'ansible-playbook -i hosts deploy_app.yml'
+                sh 'ansible-playbook -i inventory.ini deploy.yml'
             }
         }
     }
 }
+
