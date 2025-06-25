@@ -4,7 +4,8 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git url: 'https://github.com/NithilaS2005/ToDoList.git', branch: 'main', credentialsId: 'your-jenkins-git-credentials-id'
+                git url: 'https://github.com/NithilaS2005/ToDoList.git', branch: 'main', credentialsId: 'NithilaS2005/****** (GitHub PAT for Jenkins)
+'
             }
         }
 
