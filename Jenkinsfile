@@ -2,30 +2,20 @@ pipeline {
     agent any
 
     stages {
-        stage('Build') {
+        stage('Checkout') {
             steps {
-                echo "📦 Compiling Java project..."
-                sh 'mvn clean package'
+                git url: 'https://github.com/NithilaS2005/ToDoList.git', branch: 'main', credentialsId: 'your-jenkins-git-credentials-id'
             }
         }
 
-        stage('Test') {
+        stage('Build (Maven)') {
             steps {
-                echo "🧪 Running JUnit tests..."
-                sh 'mvn test'
+                sh 'mvn clean install'
             }
         }
 
-        stage('Docker Build') {
+        stage('Run Ansible Playbook') {
             steps {
-                echo "🐳 Building Docker image..."
-                sh 'docker build -t todolist-app .'
-            }
-        }
-
-        stage('Deploy with Ansible') {
-            steps {
-                echo "🚀 Deploying using Ansible..."
                 sh 'ansible-playbook -i hosts deploy_app.yml'
             }
         }
