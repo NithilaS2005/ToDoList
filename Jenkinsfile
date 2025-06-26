@@ -1,23 +1,34 @@
 pipeline {
     agent any
 
+    environment {
+        MVN_HOME = '/usr/share/maven'
+    }
+
     stages {
-        stage('Checkout') {
+        stage('Clone') {
             steps {
-                git url: 'https://github.com/NithilaS2005/ToDoList.git', branch: 'main', credentialsId: 'NithilaS2005/****** (GitHub PAT for Jenkins)
-'
+                git credentialsId: 'github-pat', url: 'https://github.com/NithilaS2005/ToDoList.git'
             }
         }
 
-        stage('Build (Maven)') {
+        stage('Build') {
             steps {
-                sh 'mvn clean install'
+                sh 'mvn clean package'
             }
         }
 
-        stage('Run Ansible Playbook') {
+        stage('Deploy with Ansible') {
             steps {
                 sh 'ansible-playbook -i hosts deploy_app.yml'
+            }
+        }
+
+        stage('Send Metrics') {
+            steps {
+                sh '''
+                    echo "app.todo.build_time $(date +%s)" | nc 127.0.0.1 2003
+                '''
             }
         }
     }
