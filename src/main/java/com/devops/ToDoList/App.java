@@ -1,71 +1,98 @@
 package com.devops.ToDoList;
 
 import java.util.ArrayList;
-import java.util.Scanner;
+import java.util.List;
 
 public class App {
-    private static ArrayList<Task> tasks = new ArrayList<>();
+    private static List<String> tasks = new ArrayList<>();
 
     public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
-        boolean running = true;
+        // Check if running inside Jenkins (no user input allowed)
+        boolean inJenkins = System.getenv("JENKINS_HOME") != null;
 
-        System.out.println("📝 Welcome to the To-Do List App");
+        if (args.length > 0) {
+            // Handle commands passed as arguments (for Jenkins)
+            String command = args[0];
 
-        while (running) {
-            System.out.println("\nChoose an option:");
-            System.out.println("1️⃣ Add Task");
-            System.out.println("2️⃣ View Tasks");
-            System.out.println("3️⃣ Remove Task");
-            System.out.println("4️⃣ Exit");
-
-            System.out.print("Enter your choice: ");
-            String input = scanner.nextLine().trim();
-
-            switch (input) {
-                case "1":
-                    System.out.print("Enter task title: ");
-                    String title = scanner.nextLine();
-                    tasks.add(new Task(title));
-                    System.out.println("✅ Task added.");
-                    break;
-
-                case "2":
-                    System.out.println("📋 Your Tasks:");
-                    if (tasks.isEmpty()) {
-                        System.out.println("No tasks available.");
+            switch (command.toLowerCase()) {
+                case "add":
+                    if (args.length > 1) {
+                        tasks.add(args[1]);
+                        System.out.println("✅ Task added: " + args[1]);
                     } else {
-                        for (int i = 0; i < tasks.size(); i++) {
-                            System.out.println(i + " ➤ " + tasks.get(i).getTitle());
-                        }
+                        System.out.println("⚠️ Please provide a task to add.");
                     }
                     break;
-
-                case "3":
-                    System.out.print("Enter index of task to delete: ");
-                    try {
-                        int index = Integer.parseInt(scanner.nextLine());
-                        if (index >= 0 && index < tasks.size()) {
-                            tasks.remove(index);
-                            System.out.println("❌ Task removed.");
-                        } else {
-                            System.out.println("❗ Invalid index.");
-                        }
-                    } catch (NumberFormatException e) {
-                        System.out.println("⚠️ Please enter a valid number.");
+                case "view":
+                    System.out.println("📋 Tasks:");
+                    for (int i = 0; i < tasks.size(); i++) {
+                        System.out.println((i + 1) + ". " + tasks.get(i));
                     }
                     break;
-
-                case "4":
-                    running = false;
-                    System.out.println("👋 Exiting To-Do List App.");
+                case "remove":
+                    if (args.length > 1) {
+                        try {
+                            int index = Integer.parseInt(args[1]) - 1;
+                            if (index >= 0 && index < tasks.size()) {
+                                System.out.println("🗑️ Removed: " + tasks.remove(index));
+                            } else {
+                                System.out.println("⚠️ Invalid task number.");
+                            }
+                        } catch (NumberFormatException e) {
+                            System.out.println("⚠️ Invalid number format.");
+                        }
+                    } else {
+                        System.out.println("⚠️ Please provide the task number to remove.");
+                    }
                     break;
-
                 default:
-                    System.out.println("❓ Invalid choice. Try again.");
+                    System.out.println("❌ Unknown command. Use add/view/remove.");
             }
-        }
 
-        scanner.close();
+        } else if (!inJenkins) {
+            // If not running in Jenkins, allow interactive input
+            java.util.Scanner sc = new java.util.Scanner(System.in);
+            while (true) {
+                System.out.println("\n📝 Welcome to the To-Do List App");
+                System.out.println("1️⃣ Add Task");
+                System.out.println("2️⃣ View Tasks");
+                System.out.println("3️⃣ Remove Task");
+                System.out.println("4️⃣ Exit");
+                System.out.print("Enter your choice: ");
+
+                String choice = sc.nextLine();
+
+                switch (choice) {
+                    case "1":
+                        System.out.print("Enter task: ");
+                        String task = sc.nextLine();
+                        tasks.add(task);
+                        System.out.println("✅ Task added.");
+                        break;
+                    case "2":
+                        System.out.println("📋 Tasks:");
+                        for (int i = 0; i < tasks.size(); i++) {
+                            System.out.println((i + 1) + ". " + tasks.get(i));
+                        }
+                        break;
+                    case "3":
+                        System.out.print("Enter task number to remove: ");
+                        int index = Integer.parseInt(sc.nextLine()) - 1;
+                        if (index >= 0 && index < tasks.size()) {
+                            System.out.println("🗑️ Removed: " + tasks.remove(index));
+                        } else {
+                            System.out.println("⚠️ Invalid task number.");
+                        }
+                        break;
+                    case "4":
+                        System.out.println("👋 Goodbye!");
+                        return;
+                    default:
+                        System.out.println("❌ Invalid choice.");
+                }
+            }
+        } else {
+            System.out.println("🤖 Running in Jenkins. Provide arguments like: add/view/remove");
+        }
     }
 }
